@@ -30,7 +30,7 @@ class ConvNet(object):
         #######################################################################
 
         filter_size = 5
-        weight_scale = 1e-8
+        weight_scale = 1e-2
         num_filters = 6
         hidden_dim = 784
 

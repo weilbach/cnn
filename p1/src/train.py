@@ -4,6 +4,7 @@ from sklearn.datasets import fetch_openml
 from network import ConvNet
 from solver import Solver
 from network1 import ConvNet1
+from network2 import ConvNet2
 
 
 def load_fashion_mnist(flatten=False):
@@ -72,7 +73,7 @@ def train():
     if toy_data is False:
         data = load_fashion_mnist()
         print('initializing model')
-        model = ConvNet()
+        model = ConvNet2()
 
     else:
         data = load_toy()
@@ -83,7 +84,7 @@ def train():
     print('initializing solver')
     solver = Solver(model, data, update_rule='sgd',
                     optim_config={'learning_rate': 1e-2,},
-                    lr_decay=1.0, num_epochs=1,
+                    lr_decay=1.0, num_epochs=3,
                     batch_size=16, print_every=1)
 
     # start training

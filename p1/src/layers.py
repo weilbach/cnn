@@ -377,10 +377,12 @@ def softmax_loss(x, y):
     """
     # loss, dx = None, None
     N, C = x.shape
-
+    # print(np.max(x, axis=1))
+    # print(x)
+    # print(x -  np.max(x, axis=1, keepdims=True))
     # probabilities = np.exp(x - np.max(x, axis=1, keepdims=True))
     # probabilities /= np.sum(probabilities, axis=1, keepdims=True)
-    # # probabilities += np.finfo(float).eps
+    # probabilities += np.finfo(float).eps
     # loss = -np.sum(np.log(probabilities[np.arange(N), y] + np.finfo(float).eps)) / N
     # dx = probabilities
     # dx[np.arange(N), y] -= 1
@@ -388,22 +390,19 @@ def softmax_loss(x, y):
 
     loss = 0
 
-    for n in range(0, N):
-      exps = x[n] - np.max(x[n])
-      exps = np.exp(x[n])
-      exps = exps / (np.sum(exps))
-      loss -= np.log(exps[y[n]] + np.finfo(float).eps)
-    
-    loss /= N
-
     dx = np.zeros((N,C))
+    # max_row = np.max(x, axis=1)
 
     for n in range(0, N):
-      exps = np.exp(x[n] - np.max(x[n]))
-      exps = exps / (np.sum(exps))
-      dx[n] = exps
-      dx[n][y[n]] -= 1
+      ind = y[n]
+      probs = x[n] - np.max(x[n])
+      probs = np.exp(probs)
+      probs /= (np.sum(probs))
+      loss += -np.log(probs[ind] + np.finfo(float).eps)
+      dx[n] = probs
+      dx[n][ind] -= 1
     
-    dx = dx / N
+    dx /= N
+    loss /= N
 
     return loss, dx

@@ -255,7 +255,8 @@ class Solver(object):
         iterations_per_epoch = max(num_train // self.batch_size, 1)
         num_iterations = self.num_epochs * iterations_per_epoch
         # print(num_iterations)
-        num_iterations = 500
+        num_iterations = 1000 * self.num_epochs
+        iterations_per_epoch = 1000
         # num_iterations = 50
 
         for t in range(num_iterations):
