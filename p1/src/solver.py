@@ -251,12 +251,16 @@ class Solver(object):
         """
         Run optimization to train the model.
         """
+        losses = []
+        train_accuracies = []
+        val_accuracies = []
         num_train = self.X_train.shape[0]
         iterations_per_epoch = max(num_train // self.batch_size, 1)
         num_iterations = self.num_epochs * iterations_per_epoch
+        epoch_doc = open('epochdoc.txt', 'w+')
         # print(num_iterations)
-        num_iterations = 1000 * self.num_epochs
-        iterations_per_epoch = 1000
+        num_iterations = 2 * self.num_epochs
+        iterations_per_epoch = 2
         # num_iterations = 50
 
         for t in range(num_iterations):
@@ -266,6 +270,8 @@ class Solver(object):
             if self.verbose and t % self.print_every == 0:
                 print('(Iteration %d / %d) loss: %f' % (
                        t + 1, num_iterations, self.loss_history[-1]))
+                losses.append(self.loss_history[-1])
+                
 
             # At the end of every epoch, increment the epoch counter and decay
             # the learning rate.
@@ -291,6 +297,10 @@ class Solver(object):
                 if self.verbose:
                     print('(Epoch %d / %d) train acc: %f; val_acc: %f' % (
                            self.epoch, self.num_epochs, train_acc, val_acc))
+                    epoch_doc.write('(Epoch %d / %d) train acc: %f; val_acc: %f' % (
+                           self.epoch, self.num_epochs, train_acc, val_acc))
+                    train_accuracies.append(train_acc)
+                    val_accuracies.append(val_acc)
 
                 # Keep track of the best model
                 if val_acc > self.best_val_acc:
@@ -301,3 +311,4 @@ class Solver(object):
 
         # At the end of training swap the best params into the model
         self.model.params = self.best_params
+        return num_iterations, self.num_epochs, losses, train_accuracies, val_accuracies

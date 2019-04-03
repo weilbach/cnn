@@ -5,6 +5,7 @@ from network import ConvNet
 from solver import Solver
 from network1 import ConvNet1
 from network2 import ConvNet2
+import matplotlib.pyplot as plt
 
 
 def load_fashion_mnist(flatten=False):
@@ -50,10 +51,6 @@ def load_toy(flatten=False):
     # print(X.shape)
     # print(y.shape)
 
-    # if not flatten:
-    #     X = X.reshape(X.shape[0], 28, 28)
-    #     X = X[:, np.newaxis, :, :]
-
    
     data['X_train'] = X[:700]
     data['y_train'] = y[:700]
@@ -63,6 +60,26 @@ def load_toy(flatten=False):
     data['y_test'] = y[800:]
 
     return data
+
+def plot_performance(iterations, num_epochs, losses, train_accuracies, val_accuracies):
+
+    plt.xlabel('epoch number')
+    plt.ylabel('accuracy')
+
+    plt.plot(num_epochs, train_accuracies, color='blue', linestyle='dashed', label='training_acc')
+    plt.plot(num_epochs, val_accuracies, color='yellow', linestyle='dashed', label='val_acc')
+    plt.legend(loc='upper left')
+    plt.savefig('visualization.png')
+    plt.show()
+
+    # plt.ylabel('Purity')
+    # plt.xlabel('Number of Clusters, k')
+
+    # plt.plot(k_vals, k_means_scores, color='blue', linestyle='dashed', label='k-means_rand')
+    # plt.plot(k_vals, kpp_scores, color='orange', linestyle='dashed', label='k_means_pp')
+    # plt.plot(k_vals, spec_scores, color='green', linestyle='dashed', label='spectral')
+    # plt.legend(loc='upper left')
+    # plt.savefig('problem3.png')
 
 
 def train():
@@ -84,16 +101,18 @@ def train():
     print('initializing solver')
     solver = Solver(model, data, update_rule='sgd',
                     optim_config={'learning_rate': 1e-2,},
-                    lr_decay=1.0, num_epochs=3,
+                    lr_decay=1.0, num_epochs=10,
                     batch_size=16, print_every=1)
 
     # start training
     print('starting training')
-    solver.train()
+    iterations, num_epochs, losses, train_accuracies, val_accuracies = solver.train()
 
     # report test accuracy
     acc = solver.check_accuracy(data['X_test'], data['y_test'])
     print("Test accuracy: {}".format(acc))
+
+    plot_performance(iterations, num_epochs, losses, train_accuracies, val_accuracies)
 
 
 if __name__=="__main__":
