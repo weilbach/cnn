@@ -35,14 +35,14 @@ class ConvNet(object):
         hidden_dim = 784
 
         self.params['W1'] = np.random.normal(scale=weight_scale, size=(num_filters, input_dim[0], filter_size, filter_size))
-        self.params['W2'] = np.random.normal(scale=weight_scale, size=(num_filters, 6, filter_size, filter_size))
-        self.params['W3'] = np.random.normal(scale=weight_scale, size=(600, num_classes))
+        # self.params['W2'] = np.random.normal(scale=weight_scale, size=(num_filters, 6, filter_size, filter_size))
+        self.params['W3'] = np.random.normal(scale=weight_scale, size=(864, num_classes))
 
         # self.params['W3'] = np.random.normal(scale=weight_scale, size=(hidden_dim, num_classes))
         # self.params['W4'] = np.random.normal(scale=weight_scale, size=(hidden_dim, num_classes))
 
         self.params['b1'] = np.zeros(num_filters)
-        self.params['b2'] = np.zeros(num_filters)
+        # self.params['b2'] = np.zeros(num_filters)
         self.params['b3'] = np.zeros(num_classes)
 
         # self.params['b3'] = np.zeros(num_classes)
@@ -52,7 +52,7 @@ class ConvNet(object):
 
 
 
-    def loss(self, X, y=None):
+    def loss(self, X, y=None, justLoss=False):
         """
         Evaluate loss and gradient for the three-layer convolutional network.
 
@@ -63,7 +63,7 @@ class ConvNet(object):
         scores = None
 
         W1, b1 = self.params['W1'], self.params['b1']
-        W2, b2 = self.params['W2'], self.params['b2']
+        # W2, b2 = self.params['W2'], self.params['b2']
         W3, b3 = self.params['W3'], self.params['b3']
 
         # filter_size = W1[2].shape
@@ -89,10 +89,10 @@ class ConvNet(object):
         conv1, conv_cache = conv_forward(X, W1, b1, conv_param)
         relu1, relu_cache1 = relu_forward(conv1)
 
-        conv2, conv_cache2 = conv_forward(relu1, W2, b2, conv_param)
-        relu2, relu_cache2 = relu_forward(conv2)
+        # conv2, conv_cache2 = conv_forward(relu1, W2, b2, conv_param)
+        # relu2, relu_cache2 = relu_forward(conv2)
 
-        scores, maxpool_cache = max_pool_forward(relu2, pool_param)
+        scores, maxpool_cache = max_pool_forward(relu1, pool_param)
         scores, forward_cache = fc_forward(scores, W3, b3)
         
 
@@ -107,6 +107,9 @@ class ConvNet(object):
         # Compute data loss using softmax, and make sure that grads[k] holds  #
         # the gradients for self.params[k].                                   #
         loss, dscores = softmax_loss(scores, y)
+
+        if justLoss:
+            return loss
         # print(loss)
 
         #THIS IS COMPARISON CODE
@@ -125,10 +128,10 @@ class ConvNet(object):
         dx_3, grads['W3'], grads['b3'] = fc_backward(dscores, forward_cache)
         dx_3 = max_pool_backward(dx_3, maxpool_cache)
 
-        dx_2 = relu_backward(dx_3, relu_cache2)
-        dx_2, grads['W2'], grads['b2'] = conv_backward(dx_3, conv_cache2)
+        # dx_2 = relu_backward(dx_3, relu_cache2)
+        # dx_2, grads['W2'], grads['b2'] = conv_backward(dx_3, conv_cache2)
 
-        dx = relu_backward(dx_2, relu_cache1)
+        dx = relu_backward(dx_3, relu_cache1)
         dx, grads['W1'], grads['b1'] = conv_backward(dx, conv_cache)
         
         

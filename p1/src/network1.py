@@ -30,7 +30,7 @@ class ConvNet1(object):
 
 
 
-    def loss(self, X, y=None):
+    def loss(self, X, y=None, justLoss=False):
         """
         Evaluate loss and gradient for the three-layer convolutional network.
 
@@ -52,7 +52,10 @@ class ConvNet1(object):
 
 
         loss, dscores = l2_loss(scores, y)
-        print(loss)
+
+        if justLoss:
+            return loss
+  
 
 
         _, grads['W1'], grads['b1'] = fc_backward(dscores, cache)

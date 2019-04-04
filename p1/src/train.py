@@ -61,25 +61,24 @@ def load_toy(flatten=False):
 
     return data
 
-def plot_performance(iterations, num_epochs, losses, train_accuracies, val_accuracies):
+def plot_performance(iterations, num_epochs, val_losses, train_losses, train_accuracies, val_accuracies):
 
     plt.xlabel('epoch number')
-    plt.ylabel('accuracy')
+    plt.ylabel('avg loss')
 
-    plt.plot(num_epochs, train_accuracies, color='blue', linestyle='dashed', label='training_acc')
-    plt.plot(num_epochs, val_accuracies, color='yellow', linestyle='dashed', label='val_acc')
+    plt.plot(num_epochs, val_losses, color='blue', linestyle='dashed', label='training_loss')
+    plt.plot(num_epochs, train_losses, color='yellow', linestyle='dashed', label='val_loss')
     plt.legend(loc='upper left')
     plt.savefig('visualization.png')
     plt.show()
 
-    # plt.ylabel('Purity')
-    # plt.xlabel('Number of Clusters, k')
+    plt.ylabel('average accuracy')
+    plt.plot(num_epochs, train_accuracies, color='yellow', linestyle='dashed', label='training_accuracy')
+    plt.plot(num_epochs, val_accuracies, color='blue', linestyle='dashed', label='val_accuracy')
+    plt.legend(loc='upper left')
+    plt.savefig('visualization1.png')
+    plt.show()
 
-    # plt.plot(k_vals, k_means_scores, color='blue', linestyle='dashed', label='k-means_rand')
-    # plt.plot(k_vals, kpp_scores, color='orange', linestyle='dashed', label='k_means_pp')
-    # plt.plot(k_vals, spec_scores, color='green', linestyle='dashed', label='spectral')
-    # plt.legend(loc='upper left')
-    # plt.savefig('problem3.png')
 
 
 def train():
@@ -103,16 +102,20 @@ def train():
                     optim_config={'learning_rate': 1e-2,},
                     lr_decay=1.0, num_epochs=10,
                     batch_size=16, print_every=1)
+    solver.load_checkpoint()
 
     # start training
     print('starting training')
-    iterations, num_epochs, losses, train_accuracies, val_accuracies = solver.train()
+    iterations, num_epochs, val_losses, train_losses, train_accuracies, val_accuracies = solver.train()
+    # print(val_losses)
+
+    plot_performance(iterations, num_epochs,val_losses, train_losses, train_accuracies, val_accuracies)
 
     # report test accuracy
     acc = solver.check_accuracy(data['X_test'], data['y_test'])
     print("Test accuracy: {}".format(acc))
 
-    plot_performance(iterations, num_epochs, losses, train_accuracies, val_accuracies)
+    
 
 
 if __name__=="__main__":

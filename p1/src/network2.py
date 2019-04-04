@@ -50,7 +50,7 @@ class ConvNet2(object):
 
 
 
-    def loss(self, X, y=None):
+    def loss(self, X, y=None, justLoss=False):
         """
         Evaluate loss and gradient for the three-layer convolutional network.
 

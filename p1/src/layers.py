@@ -97,15 +97,10 @@ def relu_backward(dout, cache):
     """
     dx, x = None, cache
 
-    out = np.maximum(0, x)
+    result = np.maximum(0, x)
 
-    # breakpoint()
-    # for count, item in enumerate(out):
-    #   for count2, thing in enumerate(item):
-    #     if thing > 0:
-    #       out[count][count2] = 1
-    out[out > 0] = 1
-    dx = dout * out
+    result[result > 0] = 1
+    dx = dout * result
 
     return dx
 
@@ -191,8 +186,6 @@ def conv_backward(dout, cache):
     # print(x_padded.shape)
     #2,3,8,8
 
-    # N, F, Hdout, Wdout = dout.shape
-
     db = np.zeros(b.shape)
 
     for i in range(0, F):
@@ -202,26 +195,23 @@ def conv_backward(dout, cache):
 
     dw = np.zeros(w.shape)
     for i in range(0, N):
-      img = x_padded[i]
       for f in range(0, F):
         filt = dout[i][f]
-        convolved1 = correlate(img, [filt], mode='valid', method='fft')
-        dw[f] += convolved1
+        convolved1 = correlate(x_padded[i], [filt], mode='valid', method='fft')
+        dw[f] = np.add(dw[f], convolved1)
 
 
 
     dx = np.zeros(x.shape)
     for i in range(0, N):
-      img = dout[i]
       for c in range(0, C):
         dx_help = np.zeros((H, W))
         for f in range(0, F):
           filt = w[f][c]
           filt = np.rot90(filt)
           filt = np.rot90(filt)
-          img_conv = img[f]
-          convolved1 = correlate(img_conv, filt, mode='full', method='fft')
-          dx_help += convolved1
+          convolved1 = correlate(dout[i][f], filt, mode='full', method='fft')
+          dx_help = np.add(dx_help, convolved1)
         
         dx[i][c] = dx_help
 
@@ -270,14 +260,12 @@ def max_pool_forward(x, pool_param):
   
     out = np.zeros((N, C, int(H_out), int(W_out)))
     for i in range(0, N):
-      img = x[i]
       for c in range(0, C):
-        img_chan = img[c]
         h2 = 0
         for h in range(0, H - pool_height + 1, stride):
           w2 = 0
           for w in range(0, W - pool_width + 1, stride):
-            out[i][c][h2][w2] = np.max(img_chan[h:h+ pool_height, w:w+pool_width])
+            out[i][c][h2][w2] = np.max(x[i,c, h:h+ pool_height, w:w+pool_width])
             w2 += 1
           h2 += 1
 
@@ -307,21 +295,17 @@ def max_pool_backward(dout, cache):
     dx = np.zeros((x.shape))
     
     for i in range(0, N):
-      img = x[i]
       for c in range(0, C):
-        img_chan = img[c]
         h2 = 0
         for h in range(0, H - pool_height + 1, stride):
           w2 = 0
           for w in range(0, W - pool_width + 1, stride):
-            pooled = img_chan[h:h + pool_height, w:w + pool_width]
+            pooled = x[i, c, h:h + pool_height, w:w + pool_width]
             temp = np.equal(pooled, np.max(pooled))
             dx[i, c, h:h+pool_height, w:w+pool_width] += dout[i, c, h2, w2] * temp
             w2 += 1
           h2 += 1
     
-
-  
 
     return dx
 
@@ -377,21 +361,10 @@ def softmax_loss(x, y):
     """
     # loss, dx = None, None
     N, C = x.shape
-    # print(np.max(x, axis=1))
-    # print(x)
-    # print(x -  np.max(x, axis=1, keepdims=True))
-    # probabilities = np.exp(x - np.max(x, axis=1, keepdims=True))
-    # probabilities /= np.sum(probabilities, axis=1, keepdims=True)
-    # probabilities += np.finfo(float).eps
-    # loss = -np.sum(np.log(probabilities[np.arange(N), y] + np.finfo(float).eps)) / N
-    # dx = probabilities
-    # dx[np.arange(N), y] -= 1
-    # dx /= N
 
     loss = 0
 
     dx = np.zeros((N,C))
-    # max_row = np.max(x, axis=1)
 
     for n in range(0, N):
       ind = y[n]
