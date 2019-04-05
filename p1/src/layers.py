@@ -332,9 +332,6 @@ def l2_loss(x, y):
     N, D = x.shape
     loss = 1/N * np.sum((x-y)**2)
     dx = np.zeros((N, D))
-    # print('loss shapes')
-    # print(x.shape)
-    # print(y.shape)
 
     for i in range(0, N):
       for j in range(0, D):

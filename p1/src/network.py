@@ -34,6 +34,8 @@ class ConvNet(object):
         num_filters = 6
         hidden_dim = 784
 
+        #****** THIS WAS TO TEST OUT FASTER NETWORKS *******
+
         self.params['W1'] = np.random.normal(scale=weight_scale, size=(num_filters, input_dim[0], filter_size, filter_size))
         # self.params['W2'] = np.random.normal(scale=weight_scale, size=(num_filters, 6, filter_size, filter_size))
         self.params['W3'] = np.random.normal(scale=weight_scale, size=(864, num_classes))
@@ -66,8 +68,6 @@ class ConvNet(object):
         # W2, b2 = self.params['W2'], self.params['b2']
         W3, b3 = self.params['W3'], self.params['b3']
 
-        # filter_size = W1[2].shape
-        # filter_size = 5
 
         conv_param = {'stride': 1, 'pad': 0}
         pool_param = {'pool_height': 2, 'pool_width': 2, 'stride': 2}
@@ -78,13 +78,6 @@ class ConvNet(object):
         # computing the class scores for X and storing them in the scores     #
         # variable.                                                           #
         #######################################################################
-
-        #THIS IS COMPARISON CODE 
-        # out_1, cache_1 = conv_relu_pool_forward(X, W1, b1, conv_param, pool_param)
-        # out_2, cache_2 = affine_relu_forward(out_1, W2, b2)
-        # out_3, cache_3 = affine_forward(out_2, W3, b3)
-        # scores = out_3
-        #END COMPARISON CODE
 
         conv1, conv_cache = conv_forward(X, W1, b1, conv_param)
         relu1, relu_cache1 = relu_forward(conv1)
@@ -111,18 +104,6 @@ class ConvNet(object):
         if justLoss:
             return loss
         # print(loss)
-
-        #THIS IS COMPARISON CODE
-        # loss += sum(0.5*self.reg*np.sum(W_tmp**2) for W_tmp in [W1, W2, W3])
-
-        # dx_3, grads['W3'], grads['b3'] = fc_backward(dscores, cache_3)
-        # dx_2, grads['W2'], grads['b2'] = affine_relu_backward(dx_3, cache_2)
-        # dx_1, grads['W1'], grads['b1'] = conv_relu_pool_backward(dx_2, cache_1)
-
-        # grads['W3'] += self.reg*self.params['W3']
-        # grads['W2'] += self.reg*self.params['W2']
-        # grads['W1'] += self.reg*self.params['W1']
-        #END COMPARISON CODE
 
 
         dx_3, grads['W3'], grads['b3'] = fc_backward(dscores, forward_cache)

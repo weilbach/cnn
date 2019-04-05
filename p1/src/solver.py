@@ -120,11 +120,11 @@ class Solver(object):
         self.optim_config = kwargs.pop('optim_config', {})
         self.lr_decay = kwargs.pop('lr_decay', 1.0)
         self.batch_size = kwargs.pop('batch_size', 100)
-        self.num_epochs = kwargs.pop('num_epochs', 10)
+        self.num_epochs = kwargs.pop('num_epochs', 30)
         self.num_train_samples = kwargs.pop('num_train_samples', 1000)
         self.num_val_samples = kwargs.pop('num_val_samples', None)
 
-        self.checkpoint_name = kwargs.pop('checkpoint_name', 'yunk')
+        self.checkpoint_name = kwargs.pop('checkpoint_name', 'extras')
         self.print_every = kwargs.pop('print_every', 10)
         self.verbose = kwargs.pop('verbose', True)
 
@@ -172,7 +172,7 @@ class Solver(object):
         """
         # Make a minibatch of training data
         num_train = self.X_train.shape[0]
-        num_train2 = self.X_val.shape[0]
+        # num_train2 = self.X_val.shape[0]
         batch_mask = np.random.choice(num_train, self.batch_size)
         # batch_mask2 = np.random.choice(num_train2, self.batch_size)
 
@@ -185,6 +185,7 @@ class Solver(object):
         loss, grads = self.model.loss(X_batch, y_batch)
         self.loss_history.append(loss)
 
+        # what is below didn't work
         # loss2 = self.model.loss(X_val_batch, y_val_batch, justLoss=True)
         # self.val_loss.append(loss2)
 
@@ -198,7 +199,7 @@ class Solver(object):
 
 
     def _save_checkpoint(self):
-        if self.checkpoint_name is None: return
+        if self.checkpoint_name is 'yunk': return
         checkpoint = {
           'model': self.model,
           'update_rule': self.update_rule,
@@ -220,7 +221,7 @@ class Solver(object):
             pickle.dump(checkpoint, f)
 
 
-    def check_accuracy(self, X, y, num_samples=None, batch_size=100):
+    def check_accuracy(self, X, y, num_samples=None, batch_size=100, val=False):
         """
         Check accuracy of the model on the provided data.
 
@@ -257,6 +258,14 @@ class Solver(object):
             scores = self.model.loss(X[start:end])
             y_pred.append(np.argmax(scores, axis=1))
         y_pred = np.hstack(y_pred)
+        
+        if val:
+        #i think this is right for validation and training loss
+        #the training loss prints first
+          val_loss = (abs(np.mean(y - y_pred)))
+          self.val_loss.append(val_loss)
+          print(val_loss)
+        
         acc = np.mean(y_pred == y)
 
         
@@ -305,7 +314,7 @@ class Solver(object):
                 train_acc = self.check_accuracy(self.X_train, self.y_train,
                     num_samples=self.num_train_samples)
                 val_acc = self.check_accuracy(self.X_val, self.y_val,
-                    num_samples=self.num_val_samples)
+                    num_samples=self.num_val_samples, val=True)
                 self.train_acc_history.append(train_acc)
                 self.val_acc_history.append(val_acc)
                 self._save_checkpoint()
@@ -327,31 +336,26 @@ class Solver(object):
 
         # At the end of training swap the best params into the model
         self.model.params = self.best_params
-        epochs = list(range(self.num_epochs+1))
-        val_losses = self.val_loss
-        avg_val_loss = [2]
-        avg_train_loss = [2]
-        losses = self.loss_history
+        
+        #****** ALL OF THIS DEALS WITH FINDING AND PLOTTING LOSSES *******
+        
+        # epochs = list(range(self.num_epochs+1))
 
-        for i in range(0, num_iterations, iterations_per_epoch):
-          val_loss = np.mean(val_losses[i:i+iterations_per_epoch])
-          train_loss = np.mean(losses[i:i+iterations_per_epoch])
-          avg_val_loss.append(val_loss)
-          avg_train_loss.append(train_loss)
+        # val_losses = self.val_loss
+        # # avg_val_loss = [val_losses[0]]
+        
+        # losses = self.loss_history
+        # avg_train_loss = [losses[0]]
+
+        # #loop to find average training loss, don't need for validation
+        # for i in range(0, num_iterations, iterations_per_epoch):
+        #   # val_loss = np.mean(val_losses[i:i+iterations_per_epoch])
+        #   train_loss = np.mean(losses[i:i+iterations_per_epoch])
+        #   # avg_val_loss.append(val_loss)
+        #   avg_train_loss.append(train_loss)
 
 
-        return num_iterations, epochs, avg_val_loss, avg_val_loss, train_accuracies, val_accuracies
+        # return epochs, val_losses, avg_train_loss, train_accuracies, val_accuracies
 
-    def load_checkpoint(self):
-      filename = '%s_epoch_%d.pkl' % (self.checkpoint_name, self.epoch)
-      checkpoints = []
-      for i in range(0, 2):
-        filename = '%s_epoch_%d.pkl' % (self.checkpoint_name, i)
-        with open(filename, 'rb') as cp_file:
-            cp = pickle.load(cp_file)
-            checkpoints.append(cp)
-      
-      print(checkpoints)
-      return checkpoints
 
 

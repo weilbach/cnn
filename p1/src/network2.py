@@ -31,9 +31,6 @@ class ConvNet2(object):
 
         filter_size = 5
         weight_scale = 1e-2
-        num_filters = 6
-        hidden_dim = 784
-
 
         self.params['W1'] = np.random.normal(scale=weight_scale, size=(6, input_dim[0], filter_size, filter_size))
         self.params['W2'] = np.random.normal(scale=weight_scale, size=(16, 6, filter_size, filter_size))
@@ -44,10 +41,6 @@ class ConvNet2(object):
         self.params['b2'] = np.zeros(16)
         self.params['b3'] = np.zeros(128)
         self.params['b4'] = np.zeros(10)
-
-
-
-
 
 
     def loss(self, X, y=None, justLoss=False):
@@ -65,8 +58,6 @@ class ConvNet2(object):
         W3, b3 = self.params['W3'], self.params['b3']
         W4, b4 = self.params['W4'], self.params['b4']
 
-        # filter_size = W1[2].shape
-        # filter_size = 5
 
         conv_param = {'stride': 1, 'pad': 0}
         pool_param = {'pool_height': 2, 'pool_width': 2, 'stride': 2}
@@ -97,6 +88,9 @@ class ConvNet2(object):
         loss, grads = 0, {}
 
         loss, dscores = softmax_loss(scores, y)
+
+        if justLoss:
+            return loss
 
         #********* begin backward pass ************
 
