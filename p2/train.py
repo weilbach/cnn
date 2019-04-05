@@ -14,6 +14,7 @@ from sklearn.metrics import average_precision_score as ap_score
 from torch.utils.data import DataLoader
 from torchvision import datasets, models, transforms
 from tqdm import tqdm
+import torch.nn.functional as F
 
 from dataset import FacadeDataset
 
@@ -24,15 +25,47 @@ class Net(nn.Module):
         super(Net, self).__init__()
         self.n_class = N_CLASS
         self.layers = nn.Sequential(
-            #########################################
-            ###        TODO: Add more layers      ###
-            #########################################
             nn.Conv2d(3, self.n_class, 1, padding=0),
-            nn.ReLU(inplace=True)
+            nn.ReLU(inplace=True),
+            nn.Conv2d(5, 10, 1, padding=0),
+            nn.ReLU(inplace=True),
+            nn.Linear(256, 128),
+            nn.ReLU(inplace=True),
+            nn.Linear(128, 5)
         )
+        self.conv1 = nn.Conv2d(3, 64, 3, padding=0)
+        self.conv2 = nn.Conv2d(64, 64, 3, padding=0)
+        self.conv3 = nn.Conv2d(64, 128, 3, padding=0)
+        self.conv4 = nn.Conv2d(128, 128, 3, padding=0)
+        self.conv5 = nn.Conv2d(128, 64, 3, padding=0)
+        self.conv6 = nn.Conv2d(64, 5, 3, padding=0)
+
+        self.fullback = nn.Conv2d(128, 5, 1)
+
+
+        self.pool = nn.MaxPool2d(kernel_size=2, stride=(2,2), padding=0,return_indices=True)
+        self.up2 = nn.MaxUnpool2d(2, stride=2)
+
+        self.trans1 = nn.ConvTranspose2d(5, 5, 4, stride=2, bias=False)
+        self.trans2 = nn.ConvTranspose2d(5, 5, 32, stride=16, bias=False)
+        #this didn't work lol
+        self.drop = nn.Dropout2d()
 
     def forward(self, x):
-        x = self.layers(x)
+
+        x = F.relu(self.conv1(x))
+        x = F.relu(self.conv2(x))
+        x, indices = self.pool(x)
+        x = self.up2(x, indices)
+       
+        x = F.relu(self.conv3(x))
+        x = F.relu(self.conv4(x))
+        x, indices = self.pool(x)
+        x = self.up2(x, indices)
+
+        x = F.relu(self.conv5(x))
+        x = F.relu(self.conv6(x))
+
         return x
 
 
@@ -65,6 +98,10 @@ def train(trainloader, net, criterion, optimizer, device, epoch):
         labels = labels.to(device)
         optimizer.zero_grad()
         output = net(images)
+        # output = output.float()
+        print('inside train')
+        print(output.shape)
+        print(labels.shape)
         loss = criterion(output, labels)
         loss.backward()
         optimizer.step()
@@ -120,6 +157,8 @@ def cal_AP(testloader, net, criterion, device):
                 ap = ap_score(heatmaps[c], preds[c])
                 aps.append(ap)
             print("AP = {}".format(ap))
+        print('average precision')
+        print(np.mean(aps))
 
     # print(losses / cnt)
     return None
@@ -136,6 +175,7 @@ def get_result(testloader, net, device, folder='output_train'):
             labels = labels.to(device)
             output = net(images)[0].cpu().numpy()
             c, h, w = output.shape
+            print(output.shape)
             assert(c == N_CLASS)
             y = np.zeros((h,w)).astype('uint8')
             for i in range(N_CLASS):
@@ -154,16 +194,18 @@ def main():
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     # TODO change data_range to include all train/evaluation/test data.
     # TODO adjust batch_size.
+    data = FacadeDataset(flag='train')
+    print(data.__len__)
     train_data = FacadeDataset(flag='train', data_range=(0,20), onehot=False)
-    train_loader = DataLoader(train_data, batch_size=1)
+    train_loader = DataLoader(train_data, batch_size=20)
     test_data = FacadeDataset(flag='test_dev', data_range=(0,114), onehot=False)
-    test_loader = DataLoader(test_data, batch_size=1)
+    test_loader = DataLoader(test_data, batch_size=19)
     ap_data = FacadeDataset(flag='test_dev', data_range=(0,114), onehot=True)
-    ap_loader = DataLoader(ap_data, batch_size=1)
+    ap_loader = DataLoader(ap_data, batch_size=19)
 
     name = 'starter_net'
     net = Net().to(device)
-    criterion = nn.CrossEntropyLoss() #TODO decide loss
+    criterion = nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(net.parameters(), 1e-3, weight_decay=1e-5)
 
     print('\nStart training')

@@ -135,7 +135,7 @@ def train():
 
     solver = Solver(model, data, update_rule='sgd',
                     optim_config={'learning_rate': 1e-2,},
-                    lr_decay=1.0, num_epochs=30,
+                    lr_decay=1.0, num_epochs=10,
                     batch_size=16, print_every=1)
 
     checkpoints = load_checkpoint()
